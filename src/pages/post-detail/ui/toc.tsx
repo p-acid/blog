@@ -8,7 +8,7 @@ interface TocProps {
 
 export const Toc = ({ toc }: TocProps) => {
   return (
-    <aside className="absolute left-[calc(100%_+_32px)] h-full w-full max-xl:hidden">
+    <aside className="absolute left-[calc(100%_+_32px)] h-full max-xl:hidden">
       <ul className="sticky top-40 my-0 w-full max-w-72 border-l border-slate-700 pl-5">
         {toc.map(({ id, text, depth }, index) => {
           return (
@@ -20,7 +20,7 @@ export const Toc = ({ toc }: TocProps) => {
             >
               <Link
                 href={`#${id}`}
-                className="font-norma break-keep text-sm text-zinc-100 no-underline hover:underline"
+                className="font-norma whitespace-pre break-keep text-sm text-zinc-100 no-underline hover:underline"
               >
                 {text}
               </Link>
