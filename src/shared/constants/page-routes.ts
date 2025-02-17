@@ -11,12 +11,12 @@ interface NavigationRoute {
 
 export const navigationRoutes: NavigationRoute[] = [
   {
-    text: "home",
+    text: "Home",
     path: pageRoutes.home,
     matcher: (currentPath) => currentPath === pageRoutes.home,
   },
   {
-    text: "posts",
+    text: "Posts",
     path: pageRoutes.posts,
     matcher: (currentPath) => !!currentPath?.includes(pageRoutes.posts),
   },
