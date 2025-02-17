@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
-import "dayjs/locale/ko";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import { Navigation } from "@/widgets/layouts";
+
+import "dayjs/locale/ko";
 
 import "../styles/globals.css";
 
@@ -17,7 +18,7 @@ export const RootLayout = ({
   return (
     <html lang="ko" className="dark">
       <body className="flex justify-center">
-        <main className="my-8 w-full max-w-screen-sm space-y-8 px-4 max-sm:my-6">
+        <main className="my-8 w-full max-w-screen-sm px-4 max-sm:my-6">
           <Navigation />
           {children}
         </main>

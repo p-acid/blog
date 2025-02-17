@@ -1,14 +1,14 @@
 import { contentsBases } from "@/shared/constants/paths";
-import { Content, FrontmatterBase } from "@/shared/types/contents";
+import { ContentDetail, FrontmatterBase } from "@/shared/types/contents";
 
-interface GetContentParams {
+interface GetContentDetailParams {
   base: (typeof contentsBases)[keyof typeof contentsBases];
   slug: string;
 }
 
-export const getContent = async <F extends FrontmatterBase>(
-  params: GetContentParams,
-): Promise<Content<F>> => {
+export const getContentDetail = async <F extends FrontmatterBase>(
+  params: GetContentDetailParams,
+): Promise<ContentDetail<F>> => {
   const result = await import(
     `/contents/${params.base}/${params.slug}/index.mdx`
   );
