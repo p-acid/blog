@@ -14,7 +14,7 @@ export const Toc = ({ toc }: TocProps) => {
           return (
             <li
               key={`${id}-${index}`}
-              className={cn("my-1 list-none pl-0", {
+              className={cn("my-0 list-none pl-0", {
                 [DEPTH_SPACING[depth]]: !!DEPTH_SPACING[depth],
               })}
             >

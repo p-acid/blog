@@ -2,6 +2,7 @@ import { HighlightedCode, Pre } from "codehike/code";
 
 import { callout } from "./callout";
 import { CopyButton } from "./copy-button";
+import { link } from "./link";
 
 export interface CodeProps {
   codeblock: HighlightedCode;
@@ -18,7 +19,11 @@ export const Code = ({ codeblock }: CodeProps) => {
         </div>
       )}
 
-      <Pre className="my-0 bg-zinc-900" code={codeblock} handlers={[callout]} />
+      <Pre
+        className="my-0 bg-zinc-900"
+        code={codeblock}
+        handlers={[callout, link]}
+      />
     </div>
   );
 };

@@ -19,7 +19,7 @@ export const callout: AnnotationHandler = {
         {children}
         <div
           style={{ minWidth: `${column + 4}ch` }}
-          className="relative my-1 w-fit select-none whitespace-break-spaces rounded border border-zinc-500 bg-zinc-800 px-2.5 pb-0.5 pt-1 prose-p:mx-2 prose-p:my-1"
+          className="relative my-2 w-fit select-none whitespace-break-spaces rounded border border-zinc-500 bg-zinc-800 px-2.5 pb-0.5 pt-1 prose-p:mx-2 prose-p:my-1"
         >
           <div
             style={{ left: `${column}ch` }}
