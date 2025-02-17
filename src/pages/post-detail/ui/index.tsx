@@ -21,7 +21,7 @@ export const PostDetailPage = async ({
   });
 
   return (
-    <section className="prose prose-invert relative mt-6 w-full">
+    <article className="prose prose-invert relative mt-6 w-full prose-h3:mt-12 prose-h4:mt-12 prose-h4:text-lg">
       <div className="mb-8 border-b border-zinc-800 pb-6">
         <ul className="mb-6 mt-0 flex list-none gap-2 pl-0">
           {frontmatter.tags.map((tag) => (
@@ -44,6 +44,6 @@ export const PostDetailPage = async ({
       <Toc toc={toc} />
 
       <MDX />
-    </section>
+    </article>
   );
 };

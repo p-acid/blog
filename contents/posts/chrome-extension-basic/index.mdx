@@ -1,0 +1,477 @@
+---
+title: "Chrome Extension 이해하기"
+description: "Chrome Extension 개발을 위한 프로젝트 구조 및 실행 환경에 대하여"
+tags:
+  - Development
+draft: false
+date: 2025-02-13 17:32:32
+---
+
+Chrome Extension을 사용하고 계신가요? Chrome 브라우저를 사용하신다면 아마 많은 유저들이 다양한 Extension을 활용하고 있을 텐데요. 이번 포스트에서는 Chrome Extension 개발을 시작하기 전에 참고할 만한 **용어**와 **실행 환경** 등을 살펴보겠습니다.
+
+## 개요
+
+<strong>Chrome Extension(크롬 익스텐션)</strong>은 사용자 인터페이스를
+커스터마이징하고, 브라우저 이벤트를 감지하며, 웹페이지를 수정하여 탐색 환경을
+더욱 편리하게 만드는 프로그램입니다.
+
+많은 Chrome Extension들을 [Chrome Web Store](https://chromewebstore.google.com/category/extensions)에서 다운로드 가능하며 많은 개발자들이 유용한 Extension을 개발하고 있습니다.
+
+## 용어 및 개념
+
+Chrome Extension은 여러 구성 요소로 이루어져 있으며, 개발을 위해 알아야 할 주요 용어와 개념들이 존재합니다.
+
+- Manifest
+- Service workers
+- Content scripts
+- Toolbar action (Action API)
+- Side Panel (Manifest V3)
+- DeclarativeNetRequest
+
+각각의 용어 및 개념은 익스텐션의 기능과 동작을 정의하며, 화면 구성을 이해하는 데 필요한 핵심 내용들입니다. 이어서 위 용어들에 대해 자세히 알아보겠습니다.
+
+### Manifest
+
+**Manifest**는 Extension의 **메타데이터**와 **리소스에 대한 정의**, **권한에 대한 선언**, **백그라운드 및 페이지에서 실행될 파일 위치**에 대한 내용을 포함합니다. 모든 Extension은 `manifest.json` 파일이 존재하며, 아래와 같은 구조를 갖춥니다.
+
+```json manifest.json
+{
+  "manifest_version": 3, // 패키지에 필요한 Manifest 버전
+  "name": "확장 프로그램", // Extension을 식별하는 문자열
+  "version": "1.0.0", // Extension의 버전을 정의
+  // Extension에 대한 설명
+  "description": "커스텀 확장 프로그램입니다.",
+  // Extension 혹은 Theme를 나타내는 아이콘
+  "icons": {
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png"
+  },
+  "permissions": [
+    "tabs", // 탭 관련 작업 권한
+    "notifications", // 알림 권한
+    "storage" // 저장소 권한
+  ],
+  "host_permissions": [
+    "http://*/*", // 모든 HTTP 요청 권한
+    "https://*/*" // 모든 HTTPS 요청 권한
+  ],
+  "background": {
+    "service_worker": "background.js" // 백그라운드 스크립트로 서비스 워커 사용
+  },
+  "action": {
+    "default_popup": "popup.html", // 익스텐션 아이콘 클릭 시 표시될 팝업 HTML 파일
+    "default_icon": "icons/icon48.png" // 팝업에 사용할 기본 아이콘
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"], // 모든 URL에서 동작
+      "js": ["content.js"], // 콘텐츠 스크립트 파일
+      "css": ["content.css"] // 콘텐츠 스크립트와 함께 사용할 CSS 파일
+    }
+  ],
+  "options_page": "options.html", // 옵션 페이지
+  "web_accessible_resources": [
+    {
+      "resources": ["images/*", "styles/*"], // 웹에서 접근할 수 있는 리소스들
+      "matches": ["<all_urls>"] // 모든 URL에 대해 접근 가능
+    }
+  ]
+}
+```
+
+<Callout>
+  Manifest 파일 구조에 대한 자세한 내용은 [해당
+  링크](https://developer.chrome.com/docs/extensions/reference/manifest?hl=en)를
+  참고해주세요.
+</Callout>
+
+또한 Manifest 파일에서 Chrome Extension에 대한 설정 외에도 **다른 브라우저(Firefox, Opera, Edge 등등)의 Extension**에 대한 정의도 가능합니다.
+
+### Service workers
+
+Extension에서 **service worker**는 Extension의 **중앙 이벤트 핸들러**입니다. service worker라면 **Web service worker**가 먼저 떠오를 텐데, 이는 동작 방식과 목적에서 차이가 있습니다.
+
+<Callout type="info">
+  [**Web Service Worker**](https://developer.mozilla.org/ko/docs/Web/API/Service_Worker_API)
+
+**Web service worker**는 웹사이트의 백그라운드에서 실행되며, **네트워크 요청을 가로채거나 캐싱하여 오프라인 기능을 지원**합니다. 이를 통해 **네트워크 상태와 관계없이 빠른 로딩과 원활한 사용자 경험**을 제공합니다.
+
+`navigator.serviceWorker` API를 통해 등록되며, **`fetch` 이벤트로 네트워크 요청을 제어**하거나 **푸시 알림, 백그라운드 동기화**를 처리할 수 있습니다. 이러한 기능은 **[Progressive Web App(PWA)](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps) 개발에서 핵심적인 역할**을 합니다.
+
+</Callout>
+
+Extension service worker는 [Manifest V3](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3) 부터 도입된 기존 백그라운드 스크립트(Background Script)를 대체하는 백그라운드 처리 방식입니다. service worker로 변경됨에 따라, 기존에 Extension이 실행되지 않을 때에도 리소스를 차지하던 단점이 개선되었으며, **필요한 경우에만 실행되도록 최적화**되었습니다.
+
+Extension service worker는 앞전의 `manifest.json` 파일의 `background` 필드에서 등록할 수 있습니다. 단일 스크립트 파일을 등록하려면 `service_worker` 필드에 스크립트 경로를 추가하여 등록 할 수 있습니다.
+
+```json manifest.json
+{
+  "background": "service-worker.js"
+}
+```
+
+#### Import Scripts
+
+두 개 이상의 스크립트를 service worker로 가져오기 위해 약간 다른 방법을 활용할 수도 있습니다. 하나는 `import()` 나머지 하나는 `importScript()` 메서드입니다.
+
+예시로, 두 개의 백그라운드 스크립트를 import() 메서드를 사용하여 불러오는 형태를 살펴보겠습니다. 우선 `manifest.json` 파일의 `background` 필드에 `type` 을 추가하고, 그 값으로 `"module"` 을 지정하겠습니다.
+
+```json manifest.json
+{
+  "background": "bg-loader.js",
+  "type": "module"
+}
+```
+
+이후엔 기존에 `import()` 메서드를 사용하던 것처럼 모듈을 불러와 실행시키면 됩니다. 이렇게 복수의 스크립트를 service worker로 불러올 수 있습니다.
+
+```ts bg-loader.ts
+import { example1 } from './bg-1.ts'
+import { example2 } from './bg-2.ts'
+
+try {
+  example1()
+  example2()
+} catch (e) {
+  ...
+}
+```
+
+`importScript()` 메서드의 경우 아래와 같이 활용할 수 있습니다.
+
+```ts bg-loader.ts
+try {
+  importScript('./bg-1.js')
+  importScript('./bg-2.js')
+} catch (e) {
+  ...
+}
+```
+
+이외에도 Extension service worker의 [라이프사이클](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/lifecycle)과 [이벤트](https://developer.chrome.com/docs/extensions/develop/concepts/service-workers/events)에 대한 내용도 있지만 이번 포스팅에선 Chrome Extension 전반에 대한 내용을 다루기에 자세한 내용은 생략하도록 하겠습니다.
+
+### Content Scripts
+
+**Content scripts**는 웹페이지의 컨텍스트에서 실행되는 파일입니다. 따라서 대표적으로 **DOM API**를 직접 활용할 수 있으며, `i18n`, `storage`, `runtime` API도 사용할 수 있습니다.
+
+```js content-script.js
+// "myButton" 이라는 id를 갖는 button 요소를 조작하는 예시
+
+var greeting = "hola, ";
+var button = document.getElementById("mybutton");
+button.person_name = "Roberto";
+button.addEventListener(
+  "click",
+  () => alert(greeting + button.person_name + "."),
+  false,
+);
+```
+
+또한 content scripts는 Extension의 다른 부분과 **메시지를 교환**하여 간접적으로 다른 API에 접근할 수 있습니다. 예시로, service worker와 content scripts 간의 메시지 교환을 통해 활성화 된 탭의 정보를 `console.log` 로 출력해보겠습니다.
+
+우선, content script에서 탭 정보를 요청하는 메시지를 전달하는 코드를 작성해보겠습니다. 해당 메시지를 통해 탭 정보를 전달받고, 결과값으로 활성화된 탭 정보를 `console.log` 를 통해 출력합니다.
+
+```js content.js
+chrome.runtime.sendMessage({ action: "getTabInfo" }, function (response) {
+  console.log("활성화 된 탭의 정보: ", response);
+});
+```
+
+그리고 service worker 쪽 코드를 작성해줍니다. 현재 활성화 된 탭에 대한 정보를 인자로 전달되는 `sendResponse` 함수를 통해 다시 전달합니다. 이렇게 하면 탭을 열였을 때 현재 탭의 정보를 확인하여 콘솔로 출력할 수 있게 됩니다.
+
+```js service-worker.js
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message.action === "getTabInfo") {
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+      const activeTab = tabs[0];
+      sendResponse(activeTab);
+    });
+  }
+  return true;
+});
+```
+
+<Callout>
+  보다 더 자세한 내용은 공식 문서의 [Message
+  passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging)을
+  참고해주세요.
+</Callout>
+
+#### Inject Scripts
+
+Content script는 **정적 선언, 동적 선언, 프로그래밍 방식**의 세 가지 방식으로 주입할 수 있습니다. 세 가지 방식에 대해 간략하게 알아보겠습니다.
+
+우선, [정적 선언을 통한 주입](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#functionality)은 `manifest.json` 의 `"content_scripts"` 키로 할당 가능하며 **JavaScript, CSS** 파일 둘 다 혹은 각각을 지정할 수 있습니다. 해당 파일들은 [match patterns](https://developer.chrome.com/docs/extensions/develop/concepts/match-patterns)에 따라 해당하는 페이지에서 자동으로 실행됩니다.
+
+```json manifest.json
+{
+ ...
+ "content_scripts": [
+   {
+     "matches": ["<all_urls>"],
+     "css": ["styles.css"],
+     "js": ["content-script.js"]
+   }
+ ],
+ ...
+}
+```
+
+[동적 선언을 통한 주입](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#dynamic-declarative)은 match patterns을 특정할 수 없거나 content scripts가 항상 주입되어서는 안되는 경우에 유용합니다.
+
+[Scripting API](https://developer.chrome.com/docs/extensions/reference/api/scripting)를 통해 content scripts의 **등록, 업데이트, 목록 불러오기, 삭제**를 진행할 수 있습니다.
+
+```js service-worker.js
+chrome.scripting
+  // !callout[/registerContentScripts/] content scripts 등록
+  .registerContentScripts([
+    {
+      id: "session-script",
+      js: ["content.js"],
+      persistAcrossSessions: false,
+      matches: ["*://example.com/*"],
+      runAt: "document_start",
+    },
+  ])
+  .then(() => console.log("registration complete"))
+  .catch((err) => console.warn("unexpected error", err));
+
+chrome.scripting
+  // !callout[/updateContentScripts/] content scripts 업데이트
+  .updateContentScripts([
+    {
+      id: "session-script",
+      excludeMatches: ["*://admin.example.com/*"],
+    },
+  ])
+  .then(() => console.log("registration updated"));
+
+chrome.scripting
+  // !callout[/getRegisteredContentScripts/] content scripts 목록 불러오기
+  .getRegisteredContentScripts()
+  .then((scripts) => console.log("registered content scripts", scripts));
+
+chrome.scripting
+  // !callout[/unregisterContentScripts/] content scripts 삭제
+  .unregisterContentScripts({ ids: ["session-script"] })
+  .then(() => console.log("un-registration complete"));
+```
+
+마지막으로 [프로그래밍 방식을 통한 주입](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#programmatic)은 **이벤트** 혹은 **특정한 상황에서 주입해야 하는 경우** 활용합니다. content scripts를 프로그래밍 방식으로 주입하기 위해선 스크립트를 주입하려는 페이지에 대한 [호스트 권한](https://developer.chrome.com/docs/extensions/develop/concepts/declare-permissions?hl=ko#host-permissions)이 필요합니다. 이는 `host_permissions` 라는 키에 값을 할당하여 특정 URL에 대한 호스트 권한을 요청할 수 있습니다.
+
+```json manifest.json
+{
+  "host_permissions": ["https://www.developer.chrome.com/*"]
+}
+```
+
+또는 [`"activeTab"`](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab) 을 사용하여 일시적으로 권한을 부여할 수도 있습니다.
+
+```json manifest.json
+{
+  "permissions": ["activeTab", "scripting"]
+}
+```
+
+프로그래밍 방식으로 주입하게 되면 **파일** 형태 혹은 **함수** 형태로도 content scripts를 주입할 수 있습니다.
+
+```js service-worker.js
+// 파일 형태로 주입하기
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["content-script.js"],
+  });
+});
+```
+
+```js service-worker.js
+// 함수 형태로 주입하기
+
+function injectedFunction(color) {
+  document.body.style.backgroundColor = color;
+}
+
+chrome.action.onClicked.addListener((tab) => {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    func: injectedFunction,
+    // !callout[/args/] 함수 형태로 전달하게 되면 인자도 전달 가능합니다
+    args: ["orange"],
+  });
+});
+```
+
+<Callout>
+  content scripts와 관련된 다른 내용들은 [Content
+  scripts](https://developer.chrome.com/docs/extensions/develop/concepts/content-scripts#run_time)에서
+  확인해주세요.
+</Callout>
+
+### Toolbar Action
+
+**Toolbar Action**은 사용자가 **Extension을 클릭할 때 수행되는 동작**을 정의하는 요소로, **아이콘, 팝업, 배지** 등의 설정도 포함됩니다.
+
+**Action API**([`chrome.action`
+API](https://developer.chrome.com/docs/extensions/reference/api/action))를 활용하면 앞의 내용들을 제어할 수 있는데, 해당 API를 사용하기 위해 Manifest에 `"action"` 키를 선언해야합니다.
+
+```json manifest.json
+{
+  "action": {
+    // optional
+    "default_icon": {
+      "16": "images/icon16.png", // optional
+      "24": "images/icon24.png", // optional
+      "32": "images/icon32.png" // optional
+    },
+    "default_title": "Click Me", // optional, shown in tooltip
+    "default_popup": "popup.html" // optional
+  }
+}
+```
+
+`chrome.action` API를 통해 탭에 **배지를 추가**하거나 스타일을 변경하여 **탭의 상태를 표현**할 수 있습니다.
+
+이외에도 action을 활용하면 **팝업**을 보여주거나 **클릭을 통해 content scripts를 삽입**하는 등의 기능을 추가할 수 있습니다. 몇 가지 예시들과 함께 활용 사례에 대해 알아보겠습니다.
+
+<Callout>
+  이외 `chrome.action` 메서드들은 [chrome.action :
+  Methods](https://developer.chrome.com/docs/extensions/reference/api/action#method)에서
+  확인하실 수 있습니다.
+</Callout>
+
+#### 탭 상태 표현
+
+Extension action은 탭마다 다른 상태를 가질 수 있습니다. 특정 탭에 대한 배지 텍스트를 설정하는 것을 아래와 같이 설정할 수 있습니다.
+
+```js
+function getTabId() { /* ... */}
+function getTabBadge() { /* ... */}
+
+// !link[/setBadgeText/] https://developer.chrome.com/docs/extensions/reference/api/action#method-setBadgeText
+chrome.action.setBadgeText(
+  {
+    text: getTabBadge(tabId),
+    tabId: getTabId(),
+  },
+  () => { ... }
+);
+```
+
+#### 팝업 보여주기
+
+Extension을 클릭하면 <strong>팝업(Popup)</strong>을 띄워주는 것이 가장 일반적인데, 이를 `manifest.json` 에서 `"default_popup"` 키를 통해 정의할 수 있습니다.
+
+```json manifest.json
+{
+  "action": {
+    "default_popup": "popup.html"
+  }
+}
+```
+
+### Side Panel
+
+**Side panel**은 Manifest V3 부터 도입된 기능으로 `chrome.sidePanel` API를 통해 제어할 수 있습니다. Side Panel API를 사용하기 위해선 `manifest.json` 에 `"sidePanel"` 권한을 추가해야합니다.
+
+```json manifest.json
+{
+  "permissions": ["sidePanel"]
+}
+```
+
+몇 가지 유스 케이스를 통해 활용 방법을 익혀보겠습니다.
+
+#### 모든 페이지에서 표시
+
+**모든 페이지에서 동일한 사이드 패널을 표시**하려면, `manifest.json` 의 `"side_panel"` 키 내 `"default_path"` 에 상대 경로를 할당하면 가능합니다.
+
+```json manifest.json
+{
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  }
+}
+```
+
+#### 특정 사이트에서 표시
+
+[`sidePanel.setOptions()`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel#method-setOptions) 메서드를 통해 **특정 사이트에서 사이드 패널을 표시**할 수 있습니다.
+
+```js service-worker.js
+await chrome.sidePanel.setOptions({
+  // !callout[/tabId/] 지정한 경우, 특정 탭에만 Side Panel 활성화
+  tabId,
+  path: "sidepanel.html",
+  // !callout[/enabled/] Side Panel 활성화 여부
+  enabled: true,
+});
+```
+
+<Callout>
+  이외 다른 유스 케이스와 메서드는
+  [`chrome.sidePanel`](https://developer.chrome.com/docs/extensions/reference/api/sidePanel)에서
+  확인해주세요.
+</Callout>
+
+### DeclarativeNetRequest
+
+**DeclarativeNetRequest**는 Extension에서 **네트워크 요청을 가로채 차단하거나 수정하는 기능**입니다. [`chrome.declarativeNetRequest`](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest) API를 통해 가능하고, 역시나 API 활용을 위해 부분적으로 권한이 필요합니다.
+
+```json manifest.json
+{
+  "permissions": [
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback",
+    "declarativeNetRequestWithHostAccess"
+  ]
+}
+```
+
+<Callout type="info">
+  활용하려는 메서드 혹은 기능에 따라 권한 대상이 다를 수 있습니다. 자세한 내용은
+  [chrome.declarativeNetRequest :
+  Permissions](https://developer.chrome.com/docs/extensions/reference/api/declarativeNetRequest#permissions)를
+  참고해주세요.
+</Callout>
+
+DeclarativeNetRequest는 내용이 너무 방대하기도 하고 적용시 학습을 진행하는 것이 좋을 것 같아 이후 내용은 생략하겠습니다.
+
+## 실행 환경
+
+크롬 익스텐션과 일반적인 웹 실행 환경은 기본적으로 HTML, CSS, JavaScript를 사용하여 개발할 수 있다는 점에서 유사하지만, 실행 방식과 보안 정책, API 접근성 등에서 여러 차이점이 존재합니다.
+
+### 실행 컨텍스트
+
+먼저, **실행 컨텍스트의 차이점**에 대해 살펴보겠습니다. 웹 애플리케이션은 주로 하나의 실행 컨텍스트인 **메인 스크립트** 내에서 실행됩니다. 이 스크립트는 웹 페이지에서 DOM을 조작하거나 이벤트를 처리하는 역할을 하며, 때때로 Web Worker나 Service Worker와 같은 백그라운드 스레드에서 비동기적으로 실행되는 코드도 포함될 수 있습니다. Web Worker는 DOM에 접근할 수 없지만, 복잡한 계산을 처리하는 데 유용하고, Service Worker는 오프라인 기능이나 푸시 알림, 캐시 처리 등 브라우저 백그라운드에서 중요한 작업을 담당합니다.
+
+반면, 크롬 익스텐션은 이러한 웹 애플리케이션의 실행 컨텍스트에 더해 **백그라운드 스크립트, 콘텐츠 스크립트, 팝업 스크립트**와 같은 확장 프로그램 전용 실행 컨텍스트를 추가로 갖습니다.
+
+- **백그라운드 스크립트**는 브라우저가 실행되는 동안 계속 동작하며, **네트워크 요청 처리**나 **탭 상태 모니터링**, **브라우저 이벤트 감지** 등의 작업을 담당합니다.
+- **콘텐츠 스크립트**는 웹 페이지 내에서 실행되지만, 페이지의 DOM과는 별도의 환경에서 동작합니다. 이를 통해 **웹 페이지를 변경하거나 데이터를 수집하는 작업**을 할 수 있습니다.
+- **팝업 스크립트**는 확장 프로그램의 UI와 관련된 부분으로, 확장 아이콘을 클릭했을 때 **브라우저 툴바에서 표시되는 팝업을 관리**합니다.
+
+이처럼, 크롬 익스텐션은 웹 애플리케이션에서 사용되는 실행 환경을 기본으로 하면서도, 여러 가지 추가적인 실행 컨텍스트가 포함된 구조로 동작합니다. 그래서 <strong>각 실행 컨텍스트 간의 통신(Message Passing)</strong>을 잘 설계해야 하며, 여러 컨텍스트가 어떻게 상호작용할 수 있을지에 대한 구조적인 고민이 필요합니다.
+
+### 보안 정책
+
+또한, 보안 정책에서도 차이가 있습니다. 웹 애플리케이션은 <strong>CSP(Content Security Policy)</strong>를 통해 `eval()` 함수 사용을 제한할 수 있으며, 이를 설정하지 않으면 여전히 `eval()` 을 사용할 수 있습니다. 반면, 크롬 익스텐션에서는 기본적으로 `eval()` 사용이 금지되어 있으며, 이를 허용하는 설정을 추가할 수 없습니다. 이는 브라우저와 밀접하게 연결된 환경에서 보안에 민감하기 때문입니다.
+
+### API 접근성
+
+API 접근성에서도 차이가 존재합니다. 크롬 익스텐션은 앞에서 확인했던 `chrome.tabs`, `chrome.runtime` 와 같은 확장 전용 API를 사용할 수 있습니다. 이를 통해 탭을 제어하거나 클립보드에 접근하는 등의 기능을 구현할 수 있습니다. 하지만 이러한 API는 일반적인 웹 애플리케이션에서는 사용할 수 없고, 웹 애플리케이션은 주로 웹 브라우저에서 제공하는 API만 사용할 수 있습니다.
+
+또한, 크롬 익스텐션은 웹 애플리케이션에 비해 UI 구성에서도 다르게 동작합니다. 크롬 익스텐션은 콘텐츠 스크립트를 통해 웹 페이지 위에 오버레이 형태로 UI를 추가하거나, 팝업 UI를 통해 독립적인 인터페이스를 제공합니다. 반면, 일반적인 웹 애플리케이션은 HTML, CSS, JS를 사용하여 직접 UI를 구성하고, 페이지 내에서 모든 인터페이스를 처리합니다.
+
+### 라이프사이클
+
+마지막으로, 라이프사이클에도 차이가 있습니다. 일반적인 웹 애플리케이션은 페이지가 종료되면 실행이 멈추지만, 크롬 익스텐션은 백그라운드 스크립트나 서비스 워커가 실행되며, 브라우저가 실행되는 동안 특정 이벤트가 발생하면 계속 동작할 수 있습니다. 이를 통해 크롬 익스텐션은 브라우저를 닫고 나서도 백그라운드에서 작업을 수행하거나 알림을 보내는 등의 기능을 구현할 수 있습니다.
+
+결론적으로, 크롬 익스텐션은 웹 애플리케이션의 실행 환경에 여러 가지 특수한 실행 컨텍스트를 추가한 형태로, 다양한 실행 컨텍스트 간의 통신을 잘 설계하고, 확장 전용 API와 보안 정책에 맞춰 개발해야 합니다. 웹 애플리케이션의 기본적인 실행 환경을 이해하면서도, 익스텐션만의 고유한 실행 구조와 요구 사항을 고려한 설계가 필요합니다.
+
+## 참고
+
+- [Chrome Extension : Chrome for Developers](https://developer.chrome.com/docs/extensions?hl=ko)
+- [MDN : Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API)
+- [MDN : Using Web Workers](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers)
