@@ -6,7 +6,11 @@ export type TableOfContents = {
   depth: number;
 }[];
 
-export interface Content<F extends Record<string, unknown>> {
+export type Content<F extends Record<string, unknown>> = F & {
+  slug: string;
+};
+
+export interface ContentDetail<F extends Record<string, unknown>> {
   frontmatter: F;
   MDX: FunctionComponent;
   toc: TableOfContents;
@@ -14,6 +18,7 @@ export interface Content<F extends Record<string, unknown>> {
 
 export type FrontmatterBase = {
   title: string;
+  date: string;
   description: string;
   tags: string[];
 };

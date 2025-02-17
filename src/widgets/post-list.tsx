@@ -1,19 +1,17 @@
-import { pageRoutes } from "@/shared/constants/page-routes";
-import { contentsBases } from "@/shared/constants/paths";
-import { PostFrontmatter } from "@/shared/types/contents";
-import { getContents } from "@/shared/utils/contents";
-import { getRelativeDate } from "@/shared/utils/get-relative-date";
-import dayjs from "dayjs";
 import Link from "next/link";
 
-export const PostList = () => {
-  const posts = getContents<PostFrontmatter>({ base: contentsBases.posts });
+import { pageRoutes } from "@/shared/constants/page-routes";
+import { Content, PostFrontmatter } from "@/shared/types/contents";
+import { getRelativeDate } from "@/shared/utils/get-relative-date";
 
-  const sortedPosts = posts.sort((a, b) => dayjs(b.date).diff(dayjs(a.date)));
+interface PostListProps {
+  list: Content<PostFrontmatter>[];
+}
 
+export const PostList = ({ list }: PostListProps) => {
   return (
     <ul className="space-y-5">
-      {sortedPosts.map(({ slug, title, description, date }) => (
+      {list.map(({ slug, title, description, date }) => (
         <li key={slug}>
           <Link
             className="flex justify-between gap-4"

@@ -3,7 +3,8 @@ import matter from "gray-matter";
 import { join } from "path";
 
 import { contentsBases, contentsDirectoryPath } from "@/shared/constants/paths";
-import { FrontmatterBase } from "@/shared/types/contents";
+import { Content, FrontmatterBase } from "@/shared/types/contents";
+import dayjs from "dayjs";
 
 interface GetContentsParams {
   base: (typeof contentsBases)[keyof typeof contentsBases];
@@ -11,7 +12,7 @@ interface GetContentsParams {
 
 export const getContents = <F extends FrontmatterBase>({
   base,
-}: GetContentsParams) => {
+}: GetContentsParams): Content<F>[] => {
   const path = join(contentsDirectoryPath, base);
 
   const slugs = readdirSync(path, { withFileTypes: true })
@@ -27,5 +28,9 @@ export const getContents = <F extends FrontmatterBase>({
     return { slug, ...frontmatter };
   });
 
-  return contents;
+  const sortedContents = contents.sort((a, b) =>
+    dayjs(b.date).diff(dayjs(a.date)),
+  );
+
+  return sortedContents;
 };
