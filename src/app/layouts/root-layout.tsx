@@ -15,7 +15,7 @@ export const RootLayout = ({
   children: React.ReactNode;
 }>) => {
   return (
-    <html lang="ko" style={{ colorScheme: "dark" }}>
+    <html lang="ko" className="dark">
       <body className="flex justify-center">
         <main className="my-8 w-full max-w-screen-sm space-y-8 px-4 max-sm:my-6">
           <Navigation />

@@ -23,6 +23,7 @@
     "dayjs": "^1.11.13",
     "next": "15.1.6",
     "react": "^19.0.0",
+    "lucide-react": "^0.475.0",
     "react-dom": "^19.0.0",
     "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^4.0.0",
