@@ -9,7 +9,7 @@ interface TocProps {
 export const Toc = ({ toc }: TocProps) => {
   return (
     <aside className="absolute left-[calc(100%_+_32px)] top-0 h-full w-full max-w-72 max-xl:hidden">
-      <ul className="sticky top-[15vh] my-0 max-h-[70vh] w-full overflow-y-scroll border-l border-slate-700 pl-5">
+      <ul className="scrollbar-hidden sticky top-[15vh] my-0 max-h-[70vh] w-full overflow-y-scroll border-l border-slate-700 pl-5">
         {toc.map(({ id, text, depth }, index) => {
           return (
             <li

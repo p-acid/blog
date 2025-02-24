@@ -1,0 +1,200 @@
+---
+title: "Next.js useRouter, 자세히 알아보기"
+description: "Next.js의 useRouter 동작 원리에 대한 이해와 커스터마이징"
+tags:
+  - Development
+draft: false
+date: 2025-02-19 16:33:49
+---
+
+Next.js로 개발해보셨다면, `useRouter` 훅을 한 번쯤 사용해 보셨을 것입니다. React + Vite 기반 프로젝트와 Next.js 프로젝트의 동시 개발을 위해 공용 컴포넌트를 개발하다 보면 `useRouter` 훅의 호환성 문제가 발생하게 됩니다.
+
+이번 포스팅에서는 이를 위해 `useRouter` 동작 방식에 대해 이해하고 정상적으로 동작하기 위한 커스터마이징을 진행하게 된 내용을 공유하고자 합니다.
+
+## useRouter 이해하기
+
+`useRouter` 는 **Next.js에서 라우팅을 지원하기 위해 제공하는 훅**으로 반환된 객체를 통해 프로그래밍적으로 라우팅 처리를 진행할 수 있습니다.
+
+`useRouter` 훅은 13버전 이후로 두 가지 버전이 존재하는데, 하나는 **App Router** 내에서 활용 가능한 [`next/navigation` 의 `useRouter`](https://nextjs.org/docs/app/api-reference/functions/use-router) 이고, 다른 하나는 기존의 **Pages Router**에서 사용하던 [`next/router` 의 `useRouter`](https://nextjs.org/docs/pages/api-reference/functions/use-router) 입니다.
+
+각각의 훅은 정해진 환경에서 동작하도록 되어있고, 적절하게 활용하지 않으면 제대로 동작하지 않습니다. 예를 들어, App Router에서 `next/router` 로부터 불러온 `useRouter` 를 사용하려고 한다면, 아래와 같은 오류를 반환합니다.
+
+> Error: `NextRouter` was not mounted. https://nextjs.org/docs/messages/next-router-not-mounted
+
+말 그대로 `NextRouter` 가 마운트되지 않았다는 오류인데, `NextRouter` 는 무엇이고 `useRouter` 의 동작에 어떤 영향을 주는지 알아보도록 합시다.
+
+### NextRouter 알아보기
+
+이를 알아보기 위해 가장 먼저 [Next.js의 공개 레포지토리](https://github.com/vercel/next.js)를 분석했습니다. [`useRouter` 의 선언 부분](https://github.com/vercel/next.js/blob/05f4b8773cf8874fb4611add2f6f409a5304614e/packages/next/src/client/router.ts#L138)을 소스 코드를 통해 확인했고, 이를 통해 찾은 구현부 내용은 다음과 같습니다.
+
+```ts router.ts
+export function useRouter(): NextRouter {
+  // !focus(1:1)
+  const router = React.useContext(RouterContext);
+  if (!router) {
+    throw new Error(
+      "NextRouter was not mounted. https://nextjs.org/docs/messages/next-router-not-mounted",
+    );
+  }
+
+  return router;
+}
+```
+
+익숙한 API가 사용되고 있습니다. **React**의 **Context API**를 활용해 `RouterContext`를 참조하고, 그 반환 값으로 `NextRouter` 타입의 값을 반환하고 있습니다.
+
+또한 앞의 오류 메시지와 동일한 내용을 컨텍스트가 정의되지 않은 경우에 반환되고 있음을 확인할 수 있습니다. `RouterContext` 의 선언부도 확인해보겠습니다.
+
+```ts router-context.shared-runtime.ts
+import React from "react";
+import type { NextRouter } from "./router/router";
+
+// !focus(1:1)
+export const RouterContext = React.createContext<NextRouter | null>(null);
+
+if (process.env.NODE_ENV !== "production") {
+  RouterContext.displayName = "RouterContext";
+}
+```
+
+앞서 확인한 대로 `RouterContext` 는 `createContext` 를 통해 생성된 컨텍스트이고, 동일하게 `NextRouter` 라는 타입으로 정의됩니다.
+
+이를 통해 `NextRouter` 가 React Context API를 통해 생성된 컨텍스트의 타입임을 알 수 있었고, 추가로 유추해보면 **App Router에서는 해당 컨텍스트를 참조할 수 없기 때문**에 훅에서 오류를 반환하는 것이라고 생각할 수 있습니다.
+
+또한 App Router의 `useRouter` 도 동일하게 Context API를 통해 동작합니다.
+
+```ts app-router-context.shared-runtime.ts
+...
+
+export const AppRouterContext = React.createContext<AppRouterInstance | null>(
+  null,
+);
+
+...
+```
+
+컨텍스트 타입은 `AppRouterInstance` 로 기존 `NextRouter` 와 다른 타입을 갖습니다. 이렇게 다른 인터페이스를 갖는 두 개의 컨텍스트를 호환하기 위해 `adaptForAppRouterInstance` 함수를 활용하여 반환된 값을 `value` prop에 할당합니다.
+
+### Context API를 사용하는 이유
+
+그렇다면 Next.js는 왜 **Context API**를 통해 **라우팅 관련 객체**를 관리하는 것일까요? 몇 가지 이유를 추측해볼 수 있겠지만, 아마도 그 중 **SSR(Server-Side Rendering)과 관련된 이유**가 가장 합리적일 것 같습니다.
+
+아시다시피 Next.js는 **SSR**을 지원하는 대표적인 프레임워크이고, 이를 활성화 하는 경우 **서버 측에서 HTML 렌더링을 진행**하게 됩니다. 그렇기에 클라이언트에서만 접근 가능한 일부 API에 접근하지 못하는 문제가 있고 `window` 객체 또한 이에 포함됩니다.
+
+여기서 `RouterContext`(혹은 `AppRouterContext`)는 서버에서도 안전하게 참조할 수 있도록 하는 역할을 합니다. 이를 이해하기 위해 서버 측 렌더링 관련 소스 코드를 참고해보도록 하겠습니다.
+
+```tsx server/render.tsx
+/* !focus(1:1) */
+class ServerRouter implements NextRouter {
+  route: string
+  pathname: string
+
+  ...
+
+/* !focus(1:3) */
+  push(): any {
+    noRouter()
+  }
+
+  ...
+}
+
+...
+
+/* !focus(1:6) */
+const router = new ServerRouter(
+    pathname,
+    query,
+    asPath,
+    ...
+  )
+
+...
+
+ const AppContainer = ({ children }: { children: JSX.Element }) => (
+    /* !focus(1:2) */
+    <AppRouterContext.Provider value={appRouter}>
+      <RouterContext.Provider value={router}>
+```
+
+서버 측 렌더링 기능을 담당하는 함수 일부분을 가져왔습니다. 라우터 컨텍스트를 할당하는 과정에서 `ServerRouter` 라는 클래스의 인스턴스를 할당하는데, 해당 인스턴스는 실제 `window` 객체에 접근할 수 없기 때문에 참조만 가능하도록 유지됩니다.
+
+예시의 `push()` 메서드 내 할당된 `noRouter` 함수는 라우터 인스턴스가 없다는 오류를 반환하는 함수로 `next/router` 는 클라이언트 사이드에서만 사용해야 한다는 내용을 포함합니다.
+
+```tsx server/render.tsx
+function noRouter() {
+  const message =
+    'No router instance found. you should only use "next/router" inside the client side of your app. https://nextjs.org/docs/messages/no-router-instance';
+  throw new Error(message);
+}
+```
+
+만약 `useRouter` 가 SSR/CSR 상관없이 `window` 객체를 참조하고 있다면, 참조 오류가 발생하여 문제가 될 것입니다. 이러한 이유로 Context API를 사용했을 가능성이 있다고 추측해볼 수 있습니다.
+
+## Next.js Router 커스터마이징
+
+앞서 알아본대로 `useRouter` 가 정상적으로 동작하기 위해선 관련 컨텍스트를 공유해야만 합니다. 저희가 개발할 프로젝트는 App Router 기반 프로젝트이며 `pages` 디렉토리를 사용할 예정이 당장엔 없어 `AppRouterContext` 의 호환성 만을 유지하고자 합니다.
+
+우선 루트 렌더링 코드에서 전체 앱을 `AppRouterContext.Provider` 로 감싸는 부분을 추가합니다.
+
+```tsx main.tsx
+import { createRoot } from "react-dom/client";
+// !focus(1:1)
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+import App from "./App.tsx";
+// !focus(1:1)
+import CustomRouter from "./CustomRouter.ts";
+
+import "./index.css";
+
+const router = new CustomRouter();
+
+createRoot(document.getElementById("root")!).render(
+  // !focus(1:3)
+  <AppRouterContext.Provider value={router}>
+    <App />
+  </AppRouterContext.Provider>,
+);
+```
+
+props로 전달되는 context의 `value` 는 `CustomRouter` 라는 클래스의 인스턴스를 할당합니다. `CustomRouter` 는 기존 `AppRouterInstance` 의 인터페이스를 강제하는 클래스로 `push`, `replace` 와 같은 메서드를 포함합니다.
+
+```ts custom-router.ts
+import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
+
+declare type Url = string;
+
+export default class CustomRouter implements AppRouterInstance {
+  back(): void {
+    window.history.back();
+  }
+
+  forward(): void {
+    window.history.forward();
+  }
+
+  refresh() {
+    window.location.reload();
+  }
+
+  push(url: Url): boolean {
+    window.location.href = url as string;
+    return true;
+  }
+
+  replace(url: Url): boolean {
+    window.location.href = url as string;
+    return true;
+  }
+
+  prefetch(): void {}
+}
+```
+
+해당 클래스에 정의된 메서드에 의해 React + Vite 프로젝트에서 `useRouter` 를 통해 반환된 함수들이 동작하게 됩니다. 이제 React + Vite 기반 프로젝트에서도 `useRouter` 훅을 활용하는 컴포넌트들도 정상적으로 동작하게 되었습니다.
+
+## 참고
+
+- [GitHub Respository : vercel/next.js](https://github.com/vercel/next.js)
+- [Next.js Docs : `useRouter`](https://nextjs.org/docs/pages/api-reference/functions/use-router)
