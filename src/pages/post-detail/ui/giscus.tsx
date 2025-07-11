@@ -16,7 +16,7 @@ export const Giscus = () => {
     scriptElem.async = true;
     scriptElem.crossOrigin = "anonymous";
 
-    scriptElem.setAttribute("data-repo", "COYO-HM/COYO-HM.github.io");
+    scriptElem.setAttribute("data-repo", "p-acid/blog");
     scriptElem.setAttribute("data-repo-id", NEXT_PUBLIC_REPO_ID);
     scriptElem.setAttribute("data-category", "Comments");
     scriptElem.setAttribute("data-category-id", NEXT_PUBLIC_CATEGORY_ID);
