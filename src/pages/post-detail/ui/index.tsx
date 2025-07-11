@@ -5,6 +5,8 @@ import { PostFrontmatter } from "@/shared/types/contents";
 import { NextPageProps } from "@/shared/types/nextjs";
 import { getContentDetail } from "@/shared/utils/contents";
 import { Toc } from "./toc";
+import { cn } from "@/shared/utils/cn";
+import { Giscus } from "./giscus";
 
 export type PostDetailPageParams = {
   slug: string;
@@ -21,7 +23,12 @@ export const PostDetailPage = async ({
   });
 
   return (
-    <article className="prose prose-invert relative mt-6 w-full prose-h3:mt-12 prose-h4:mt-12 prose-h4:text-lg">
+    <article
+      className={cn(
+        "prose-h3: prose prose-invert relative mt-6 w-full",
+        "prose-headings:mt-10 prose-headings:break-keep prose-headings:font-medium prose-h2:text-xl prose-h3:text-lg prose-h4:text-base",
+      )}
+    >
       <div className="mb-8 border-b border-zinc-800 pb-6">
         <ul className="mb-6 mt-0 flex list-none gap-2 pl-0">
           {frontmatter.tags.map((tag) => (
@@ -44,6 +51,8 @@ export const PostDetailPage = async ({
       <Toc toc={toc} />
 
       <MDX />
+
+      <Giscus />
     </article>
   );
 };

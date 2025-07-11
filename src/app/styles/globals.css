@@ -18,11 +18,13 @@
     @apply break-all bg-background;
   }
 
-  h1,
-  h2,
-  h3,
-  h4 {
-    @apply break-keep;
+  blockquote * {
+    @apply !font-normal !not-italic;
+  }
+
+  blockquote *::before,
+  blockquote *::after {
+    @apply !content-none;
   }
 
   .scrollbar-hidden::-webkit-scrollbar {
