@@ -9,7 +9,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     img: (props: ImgHTMLAttributes<HTMLImageElement>) => (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        className="max-h-[50vh] w-full bg-slate-950 object-contain"
+        className="mx-auto bg-slate-950 object-contain"
         alt="이미지"
         {...props}
       />
