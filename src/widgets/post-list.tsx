@@ -2,13 +2,19 @@ import Link from "next/link";
 
 import { pageRoutes } from "@/shared/constants/page-routes";
 import { Content, PostFrontmatter } from "@/shared/types/contents";
-import { getRelativeDate } from "@/shared/utils/get-relative-date";
+
+import relativeTime from "dayjs/plugin/relativeTime";
+import dayjs from "dayjs";
+
+dayjs.extend(relativeTime);
 
 interface PostListProps {
   list: Content<PostFrontmatter>[];
 }
 
 export const PostList = ({ list }: PostListProps) => {
+  const today = dayjs();
+
   return (
     <ul className="space-y-5">
       {list.map(({ slug, title, description, date }) => (
@@ -25,7 +31,7 @@ export const PostList = ({ list }: PostListProps) => {
             </div>
 
             <span className="whitespace-pre text-sm text-zinc-200">
-              {getRelativeDate(date)}
+              {today.to(dayjs(date))}
             </span>
           </Link>
         </li>

@@ -1,14 +1,12 @@
 import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import localFont from "next/font/local";
 
 import { Navigation } from "@/widgets/layouts";
 
 import "dayjs/locale/ko";
 
-import "../styles/globals.css";
+import "@/app/styles/globals.css";
 
-dayjs.extend(relativeTime);
 dayjs.locale("ko");
 
 const pretendard = localFont({
