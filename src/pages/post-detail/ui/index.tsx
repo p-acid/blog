@@ -22,8 +22,6 @@ export const PostDetailPage = async ({
     slug,
   });
 
-  console.log(frontmatter.date);
-
   return (
     <article
       className={cn(
