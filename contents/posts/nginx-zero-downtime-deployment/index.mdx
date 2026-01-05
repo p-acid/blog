@@ -1,0 +1,228 @@
+---
+title: Nginx 무중단 배포 with Docker
+description: 제목은 Nginx 무중단 배포라고 하겠습니다. 근데 이제 Docker를 곁들인.
+tags:
+  - Development
+draft: false
+date: 2026-01-04 10:35:51
+---
+
+프로덕트 팀에 합류한 이후 처음으로 맡게 된 비교적 큰 작업은 **배포 프로세스 개선**이었다.
+이 작업을 준비하면서 팀 내부에서는 기존 배포 프로세스의 문제점과 개선 지점을 크게 아래 두 가지로 정리하고 있었다.
+
+- 배포 시간이 너무 오래 걸린다.
+- 무중단 배포를 위해 불필요하게 EC2 인스턴스가 사용된다.
+
+이 중 두 번째 문제에 집중하여 개선 작업을 진행해보고자 했고, 제안해주신 의견이었던 **Nginx 무중단 배포 방식**을 적용해보기로 했다.
+
+![바질강록](basil-gangrok.png)
+
+> 근데 이제 Docker를 곁들인.
+
+## 배포 방식 선택하기
+
+<strong>무중단 배포(Zero-downtime deployment)</strong>란 배포 중에도 서비스가
+중단되지 않고 지속적으로 운영되는 방식을 말한다.
+
+이를 구현하는 데에는 여러 방법이 있겠지만, 보유한 리소스 안에서 가장 효율적인 방식을 선택하고자 했다.
+그 결과, 기존에 점진적 마이그레이션을 위해 사용하던 **Nginx 설정을 활용해 무중단 배포**를 적용하기로 결정했다.
+
+**Docker** 또한 활용하고 있었으니 러닝 커브 걱정도 덜 수 있으며, 목표였던 **EC2 인스턴스 사용량 줄이기**에도 안성맞춤이었다.
+
+대표적인 무중단 배포 기법으로 **롤링, 블루/그린, 카나리** 방식이 있는데 이 중에서 **블루/그린** 방식을 선택했다.
+기존에 ALB와 Target Group을 활용한 무중단 배포 프로세스가 블루/그린 방식을 채택하고 있었기에,
+**신규 배포 프로세스에 대한 러닝 커브가 낮아진다는 점**에서 선택하지 않을 이유가 없었다.
+
+> Nginx와 Docker를 활용한 무중단 배포 예제가 많이 있었다는 것도 주요했다.
+
+## 로컬 환경에서 구현하기
+
+변경될 무중단 배포 프로세스는 다음과 같다.
+
+1. 신규 버전 코드 병합
+2. 대기 중인 컨테이너(그린)의 이미지 업데이트 및 실행
+3. Nginx 업스트림 설정을 그린 환경으로 전환하고 Nginx 재실행
+4. 변경 사항 점검 및 헬스 체크 수행
+5. 이상이 없을 경우, 기존에 실행 중이던 컨테이너(블루) 종료
+
+그리고 위 프로세스를 구현하기 위한 작업은 크게 두 가지로 나뉜다.
+
+1. Nginx 설정 변경
+   - 업스트림을 블루/그린 환경 간 전환할 수 있도록 설정 구조 개선
+   - 설정 변경 후 재실행을 통해 트래픽 전환이 가능하도록 구성
+2. Next.js 프로젝트 Docker Compose 파일 수정
+   - 블루/그린 환경을 구분하여 컨테이너를 동시에 실행할 수 있도록 구성
+   - 무중단 전환을 고려한 서비스 및 포트 구조로 수정
+
+### Nginx 설정 변경
+
+우선 Nginx 설정부터 바꿔보자.
+
+기존에 마이그레이션을 위한 리버스 프록시 설정이 이미 구성되어 있었으며, **업스트림** 또한 정의되어 있었다.
+
+고로 내가 할 일은 무중단 배포를 위해 **업스트림 스위칭**과 **재실행**이 가능하도록 만드는 것이다.
+
+업스트림 스위칭을 위해 직접 설정 파일에 접근하여 IP를 변경하는 작업을 진행해도 됐지만,
+간단한 쉘 스크립트를 작성하여 **스크립트 실행을 통해 스위칭** 할 수 있도록 구성했다.
+
+```sh switch-upstream.sh
+#!/bin/bash
+
+# nginx upstream 전환 스크립트
+# 사용법: ./switch-upstream.sh [blue|green]
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+NGINX_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+ACTIVE_CONF="$NGINX_DIR/conf.d/upstreams/nextjs-service.conf"
+
+# Blue/Green 서버 (Docker 네트워크 내부 IP)
+BLUE_SERVER="BLUE_CONTAINER_IP:3000"
+GREEN_SERVER="GREEN_CONTAINER_IP:3000"
+
+# 인자 확인
+if [ -z "$1" ]; then
+    # 인자 없으면 자동 토글
+    if grep -q "BLUE_CONTAINER_IP" "$ACTIVE_CONF" 2>/dev/null; then
+        TARGET="green"
+    else
+        TARGET="blue"
+    fi
+else
+    TARGET="$1"
+fi
+
+# 전환 실행
+case "$TARGET" in
+    blue)
+        echo "🔀 Blue (${BLUE_SERVER})로 전환 중..."
+        cat > "$ACTIVE_CONF" << EOF
+upstream nextjs_service {
+    server ${BLUE_SERVER};
+}
+EOF
+        ;;
+    green)
+        echo "🔀 Green (${GREEN_SERVER})로 전환 중..."
+        cat > "$ACTIVE_CONF" << EOF
+upstream nextjs_service {
+    server ${GREEN_SERVER};
+}
+EOF
+        ;;
+    *)
+        echo "❌ 잘못된 인자: $TARGET"
+        echo "사용법: $0 [blue|green]"
+        exit 1
+        ;;
+esac
+
+# nginx 리로드
+docker-compose -f "$NGINX_DIR/docker-compose.nginx.yml" exec nginx-proxy nginx -s reload
+
+echo "✅ 전환 완료! 현재 활성: $TARGET"
+```
+
+스크립트를 요약하면 업스트림 서버를 현재 실행 중인 서버를 기준으로 반대의 것(블루인 경우 그린, 그린인 경우 블루)으로 변경하는 것이다.
+
+추가로 `Makefile`을 작성하여 스크립트를 실행할 수 있도록 구성했다.
+
+```makefile Makefile
+# Makefile
+.PHONY: switch-blue switch-green switch-toggle
+
+# Blue/Green 전환
+switch-blue:
+	./nginx/scripts/switch-upstream.sh blue
+
+switch-green:
+	./nginx/scripts/switch-upstream.sh green
+
+switch-toggle:
+	./nginx/scripts/switch-upstream.sh
+```
+
+### Docker Compose 파일 수정
+
+Docker Compose 파일은 서비스 별로 블루/그린 환경을 구분하여 실행할 수 있도록 구성했다.
+
+이렇게 하면 공통 설정은 `x-common` 변수를 통해 공통으로 사용할 수 있고, 블루/그린 환경은 `profiles` 변수를 통해 구분할 수 있다.
+
+```yml docker-compose-prod.yml
+x-common: &common
+  env_file:
+    - .env.example
+  build:
+    context: ./
+    dockerfile: ./Dockerfile
+  image: "frontend-production:latest"
+  restart: on-failure
+  environment:
+    - TZ=Asia/Seoul
+
+services:
+  frontend-blue:
+    <<: *common
+    container_name: frontend-blue
+    profiles: ["blue", "all"]
+    environment:
+      - TZ=Asia/Seoul
+      - SERVER_COLOR=blue
+    ports:
+      - "3000:3000"
+    networks:
+      external-network: { ipv4_address: BLUE_CONTAINER_IP }
+
+  frontend-green:
+    <<: *common
+    container_name: frontend-green
+    profiles: ["green", "all"]
+    environment:
+      - TZ=Asia/Seoul
+      - SERVER_COLOR=green
+    ports:
+      - "3001:3000"
+    networks:
+      external-network: { ipv4_address: GREEN_CONTAINER_IP }
+
+networks:
+  app-network:
+    external: true
+    name: app-net
+```
+
+실행은 `docker compose -f docker-compose-prod.yml --profile [blue/green/all] up -d --build` 명령어를 통해 실행할 수 있다.
+
+로컬 횐경에서의 테스트는 다음과 같이 진행했다.
+
+1. 우선 블루 컨테이너와 Nginx 서버를 먼저 실행한다. 이때 업스트림은 블루 컨테이너를 가리키도록 설정한다.
+2. 프로젝트 내 수정사항을 추가하고 새롭게 이미지를 빌드하여 그린 컨테이너를 실행한다.
+3. `make switch-green` 명령어를 통해 업스트림을 그린 컨테이너로 전환한다.
+4. 새로고침을 한 뒤 그린 컨테이너로 트래픽이 전환되는 것을 확인한다.
+
+문제 없이 전환되는 것을 확인했기에 이어서 개발 환경에서 테스트를 진행하자.
+
+## 개발 환경에서 구현하기
+
+개발 환경에서도 위와 마찬가지로 테스트를 진행한다.
+
+EC2 인스턴스에 SSH로 원격 접속하여 앞의 변경사항이 반영된 브랜치로 업데이트 하여 테스트를 진행하면 된다.
+
+![자세한내용은생략한다](detail-skipped.png)
+
+> 앞과 동일한 내용이기에 자세한 내용은 생략하겠다.
+
+## 마무리 및 향후 과제
+
+이번에 무중단 배포 프로세스를 구현하면서 생각한 내용은 다음과 같다.
+
+- Nginx 설정을 파헤치며 현재 프로젝트 내에서 Nginx가 담당하는 역할이 무엇인지 이해할 수 있었다. 마이그레이션을 진행하는 과정에서 큰 도움이 될 것 같다.
+- 다양한 무중단 배포 방식에 대해 알게 되었다. 이 중 블루/그린 방식에 대해서는 실제로 구현해보며 더 자세히 알게 되었다.
+
+추가로 향후 과제로는 다음과 같은 것들이 있다.
+
+- 도커 파일 및 Next.js 빌드 옵션을 수정하거나 캐싱을 적용하는 등의 최척화 작업이 필요하다.
+- 현재는 EC2 인스턴스 내에서 직접 이미지 빌드를 진행하는데 원격 레지스트리 서버를 이용한다면 인스턴스 비용을 더 줄일 수 있는지 고민해봐야 될 것 같다.
+
+![마무리](finish.jpg)
+
+> 끗!
