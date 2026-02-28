@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/curious/Developments/blog/**)",
+      "Bash(done)",
+      "Read(//Users/curious/.claude/skills/**)",
+      "Bash(git add contents/posts/git-worktree/index.mdx contents/posts/git-worktree/finish.png)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(gh auth status)",
+      "Bash(git config --local credential.\"https://github.com\".username p-acid)",
+      "Bash(gh auth switch -u p-acid)",
+      "Bash(git config --local --unset credential.\"https://github.com\".username)",
+      "Bash(git remote set-url origin https://github.com/p-acid/blog.git)",
+      "Bash(git config --local credential.helper '!gh auth git-credential')",
+      "Bash(git config --list --show-origin)",
+      "Bash(git config --local --replace-all credential.helper '')",
+      "Bash(git config --local --add credential.helper '!gh auth git-credential')",
+      "Bash(git config --local --unset-all credential.helper)",
+      "Bash(git config --local credential.helper '!/opt/homebrew/bin/gh auth git-credential')",
+      "Bash(git -c credential.helper= -c credential.helper='!/opt/homebrew/bin/gh auth git-credential' push)",
+      "Bash(GIT_TERMINAL_PROMPT=0 git -c 'credential.helper=' -c 'credential.helper=!/opt/homebrew/bin/gh auth git-credential' push)"
+    ],
+    "additionalDirectories": [
+      "/Users/curious/.claude/skills"
+    ]
+  }
+}
