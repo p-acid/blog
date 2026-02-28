@@ -22,7 +22,8 @@
       "Bash(GIT_TERMINAL_PROMPT=0 git -c 'credential.helper=' -c 'credential.helper=!/opt/homebrew/bin/gh auth git-credential' push)"
     ],
     "additionalDirectories": [
-      "/Users/curious/.claude/skills"
+      "/Users/curious/.claude/skills",
+      "/Users/curious/Developments/blog/contents/posts"
     ]
   }
 }
