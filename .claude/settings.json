@@ -19,7 +19,8 @@
       "Bash(git config --local --unset-all credential.helper)",
       "Bash(git config --local credential.helper '!/opt/homebrew/bin/gh auth git-credential')",
       "Bash(git -c credential.helper= -c credential.helper='!/opt/homebrew/bin/gh auth git-credential' push)",
-      "Bash(GIT_TERMINAL_PROMPT=0 git -c 'credential.helper=' -c 'credential.helper=!/opt/homebrew/bin/gh auth git-credential' push)"
+      "Bash(GIT_TERMINAL_PROMPT=0 git -c 'credential.helper=' -c 'credential.helper=!/opt/homebrew/bin/gh auth git-credential' push)",
+      "Edit(~/.claude/skills/blog-post-writer/**)"
     ],
     "additionalDirectories": [
       "/Users/curious/.claude/skills",
