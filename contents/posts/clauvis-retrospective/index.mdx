@@ -8,6 +8,8 @@ draft: true
 date: 2026-04-10 T23:00:00
 ---
 
+![Clauvis](thumbnail.png)
+
 3월 말, 현업에서 AI와 함께 일하면서 반복되는 패턴들이 눈에 들어오기 시작했다. Jira에서 이슈를 가져오고, 브랜치를 만들고, 코드를 짜고, PR을 올리고, 다시 Jira에 반영하는. 매일 이 루프를 돌리면서 생각했다 — 이걸 정리해주고 대신 처리해주는 비서가 있으면 좋겠다고. 내가 직접 Jira를 들여다보지 않아도, 오늘 할 일을 정리해주고, 코드를 짜주고, PR까지 올려주는. 그런 <strong>데스크톱 앱 버전 비서</strong>를 만들고 싶었다. 그게 Clauvis의 시작이었다.
 
 ## Clauvis라는 이름
@@ -20,11 +22,11 @@ date: 2026-04-10 T23:00:00
 
 ## speckit이라는 체계
 
-AI와 빠르게 만들다 보면 "일단 만들고 보자"는 충동이 자꾸 올라온다. 그래서 개발에 <strong>speckit</strong>이라는 워크플로우를 적용했다. 모든 새 기능이 거치는 8단계 파이프라인이다.
+AI와 빠르게 만들다 보면 "일단 만들고 보자"는 충동이 자꾸 올라온다. 그래서 개발에 <strong>[speckit](https://github.com/github/spec-kit)</strong>을 적용했다. GitHub에서 만든 Spec-Driven Development 툴킷으로, 명세를 먼저 작성하고 그 명세가 구현으로 이어지는 흐름을 강제하는 도구다.
 
-Constitution(헌법 정의) → Specify(명세 작성) → Clarify(질의응답) → Plan(계획 수립) → Tasks(태스크 분해) → Analyze(코드 분석) → Implement(구현) → Checklist(완료 검증)
+Constitution(원칙 정의) → Specify(명세 작성) → Plan(계획 수립) → Tasks(태스크 분해) → Implement(구현)
 
-`.claude/commands/`에 9개의 커스텀 커맨드로 자동화했고, 각 기능은 번호가 부여된 브랜치(001~020)로 관리했다. `specs/`에는 17개 이상의 기능 명세가 쌓였다.
+이 흐름을 `.claude/commands/`에 커스텀 커맨드로 자동화했고, Clarify(질의응답), Analyze(코드 분석), Checklist(완료 검증) 단계를 추가해서 프로젝트에 맞게 확장했다. 각 기능은 번호가 부여된 브랜치(001~020)로 관리했고, `specs/`에는 17개 이상의 기능 명세가 쌓였다.
 
 6대 헌법 원칙 중 가장 자주 소환된 건 <strong>"명세 없이 구현하지 않는다"</strong>와 <strong>"단순함과 YAGNI"</strong>였다. speckit은 속도에 취해 방향을 잃지 않게 잡아주는 장치였다.
 
