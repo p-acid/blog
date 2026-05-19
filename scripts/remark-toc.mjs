@@ -4,17 +4,25 @@ import { visit } from "unist-util-visit";
 
 const slugs = new GithubSlugger();
 
+const extractText = (children) => {
+  let result = "";
+  for (const child of children) {
+    if (child.type === "text" || child.type === "inlineCode") {
+      result += child.value;
+    } else if (Array.isArray(child.children)) {
+      result += extractText(child.children);
+    }
+  }
+  return result;
+};
+
 const remarkToc = () => {
   return (tree) => {
     const toc = [];
+    slugs.reset();
 
     visit(tree, "heading", (node) => {
-      slugs.reset();
-
-      const text = node.children
-        .filter((child) => child.type === "text")
-        .map((child) => child.value)
-        .join("");
+      const text = extractText(node.children);
       const id = slugs.slug(text);
       const depth = node.depth;
 
