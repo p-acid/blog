@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 480" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <defs>
+    <marker id="aRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#f87171"/>
+    </marker>
+    <marker id="aGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#34d399"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="920" height="480" rx="16" fill="#0f172a"/>
+
+  <text x="460" y="44" text-anchor="middle" font-size="26" font-weight="700" fill="#e2e8f0">🔁 재페치 악순환 — swap 없음 vs swap 있음</text>
+  <text x="460" y="73" text-anchor="middle" font-size="14" fill="#94a3b8">같은 메모리 압박에서, swap 유무가 &#39;고리&#39;를 만들지 끊을지를 가른다</text>
+
+  <!-- 왼쪽: swap 없음 (악순환) -->
+  <rect x="50" y="96" width="380" height="350" rx="14" fill="#111827" stroke="#f87171" stroke-width="2"/>
+  <text x="240" y="128" text-anchor="middle" font-size="19" font-weight="700" fill="#f87171">❌ swap 없음 — 악순환</text>
+
+  <rect x="90" y="150" width="300" height="44" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="240" y="177" text-anchor="middle" font-size="13.5" fill="#e2e8f0">📈 메모리 압박 (워킹셋 &gt; RAM)</text>
+  <line x1="240" y1="194" x2="240" y2="212" stroke="#f87171" stroke-width="2" marker-end="url(#aRed)"/>
+
+  <rect x="90" y="214" width="300" height="44" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="240" y="241" text-anchor="middle" font-size="13.5" fill="#e2e8f0">🧹 코드 페이지까지 회수됨</text>
+  <line x1="240" y1="258" x2="240" y2="276" stroke="#f87171" stroke-width="2" marker-end="url(#aRed)"/>
+
+  <rect x="90" y="278" width="300" height="44" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="240" y="305" text-anchor="middle" font-size="13.5" fill="#e2e8f0">🔁 즉시 EBS에서 재페치</text>
+
+  <!-- loopback: 재페치 → 다시 메모리 압박 -->
+  <path d="M390,300 C420,300 420,172 392,172" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#aRed)"/>
+  <text x="411" y="240" text-anchor="middle" font-size="12" fill="#f87171">반복</text>
+
+  <rect x="90" y="350" width="300" height="70" rx="10" fill="#2a1416" stroke="#f87171" stroke-width="1.5"/>
+  <text x="240" y="380" text-anchor="middle" font-size="13" font-weight="600" fill="#fecaca">EBS I/O 폭주</text>
+  <text x="240" y="403" text-anchor="middle" font-size="13" fill="#fecaca">→ 🧊 D state 정지 (SSH 불가)</text>
+
+  <!-- 오른쪽: swap 있음 (고리 끊김) -->
+  <rect x="490" y="96" width="380" height="350" rx="14" fill="#111827" stroke="#34d399" stroke-width="2"/>
+  <text x="680" y="128" text-anchor="middle" font-size="19" font-weight="700" fill="#34d399">✅ swap 있음 — 고리 끊김</text>
+
+  <rect x="530" y="150" width="300" height="44" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="680" y="177" text-anchor="middle" font-size="13.5" fill="#e2e8f0">📦 익명 페이지를 swap으로 배출</text>
+  <line x1="680" y1="194" x2="680" y2="212" stroke="#34d399" stroke-width="2" marker-end="url(#aGreen)"/>
+
+  <rect x="530" y="214" width="300" height="44" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="680" y="241" text-anchor="middle" font-size="13.5" fill="#e2e8f0">📄 코드 페이지는 메모리에 상주</text>
+  <line x1="680" y1="258" x2="680" y2="276" stroke="#34d399" stroke-width="2" marker-end="url(#aGreen)"/>
+
+  <rect x="530" y="278" width="300" height="44" rx="8" fill="#14241d" stroke="#34d399" stroke-width="1.5"/>
+  <text x="680" y="305" text-anchor="middle" font-size="13.5" fill="#d1fae5">♻️ 재페치 악순환 없음</text>
+
+  <rect x="530" y="350" width="300" height="70" rx="10" fill="#14241d" stroke="#34d399" stroke-width="1.5"/>
+  <text x="680" y="380" text-anchor="middle" font-size="13" font-weight="600" fill="#bbf7d0">I/O wait 30% 후 안정</text>
+  <text x="680" y="403" text-anchor="middle" font-size="13" fill="#bbf7d0">→ ✅ 빌드 완료</text>
+</svg>

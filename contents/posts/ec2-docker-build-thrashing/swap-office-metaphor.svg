@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 430" font-family="Pretendard, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <defs>
+    <marker id="arrowRed" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#f87171"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L9,3 L0,6 Z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="920" height="430" rx="16" fill="#0f172a"/>
+
+  <text x="460" y="48" text-anchor="middle" font-size="26" font-weight="700" fill="#e2e8f0">💾 메모리 압박과 swap — &#39;사무실&#39; 비유</text>
+  <text x="460" y="78" text-anchor="middle" font-size="14" fill="#94a3b8">RAM=책상 · 디스크=창고 · swap=익명 전용 보관함 · 커널=관리자</text>
+
+  <!-- 책상 (RAM) -->
+  <rect x="50" y="100" width="340" height="300" rx="14" fill="#111827" stroke="#38bdf8" stroke-width="2"/>
+  <text x="220" y="136" text-anchor="middle" font-size="20" font-weight="700" fill="#38bdf8">🖥️ 책상 = RAM</text>
+  <text x="220" y="159" text-anchor="middle" font-size="13" fill="#94a3b8">빠르지만 좁은 작업 공간</text>
+
+  <rect x="78" y="182" width="284" height="46" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="94" y="211" font-size="14.5" fill="#e2e8f0">📄 코드 · 라이브러리 (파일 기반)</text>
+
+  <rect x="78" y="236" width="284" height="46" rx="8" fill="#1f2937" stroke="#475569" stroke-width="1"/>
+  <text x="94" y="265" font-size="14.5" fill="#e2e8f0">🗂️ 페이지 캐시 (파일 기반)</text>
+
+  <rect x="78" y="290" width="284" height="46" rx="8" fill="#14241d" stroke="#34d399" stroke-width="1.5"/>
+  <text x="94" y="319" font-size="14.5" fill="#d1fae5">🧠 힙 · 스택 (익명)</text>
+
+  <text x="220" y="372" text-anchor="middle" font-size="13.5" fill="#cbd5e1">👷 워커(node · webpack)가 책상에서 작업</text>
+
+  <!-- 커널 + 화살표 -->
+  <text x="460" y="150" text-anchor="middle" font-size="16" font-weight="700" fill="#f1f5f9">🧑‍💼 커널</text>
+  <text x="460" y="170" text-anchor="middle" font-size="12" fill="#94a3b8">관리자</text>
+
+  <line x1="395" y1="232" x2="523" y2="232" stroke="#f87171" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <text x="459" y="222" text-anchor="middle" font-size="13" fill="#f87171">회수(reclaim)</text>
+
+  <line x1="525" y1="300" x2="397" y2="300" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowBlue)"/>
+  <text x="459" y="319" text-anchor="middle" font-size="13" fill="#38bdf8">재적재(refault)</text>
+
+  <!-- 창고 (디스크) -->
+  <rect x="530" y="100" width="340" height="300" rx="14" fill="#111827" stroke="#fbbf24" stroke-width="2"/>
+  <text x="700" y="136" text-anchor="middle" font-size="20" font-weight="700" fill="#fbbf24">🗄️ 창고 = 디스크 / EBS</text>
+  <text x="700" y="159" text-anchor="middle" font-size="13" fill="#94a3b8">느리지만 큰 보관 공간</text>
+
+  <rect x="556" y="186" width="288" height="180" rx="10" fill="#14241d" stroke="#34d399" stroke-width="2" stroke-dasharray="6 5"/>
+  <text x="700" y="217" text-anchor="middle" font-size="16" font-weight="700" fill="#34d399">📦 swap = 익명 전용 보관함</text>
+  <text x="700" y="245" text-anchor="middle" font-size="13" fill="#cbd5e1">익명 페이지(힙 · 스택)만 잠깐 맡아둠</text>
+  <text x="700" y="289" text-anchor="middle" font-size="13" fill="#94a3b8">파일 기반 페이지는 원본이</text>
+  <text x="700" y="309" text-anchor="middle" font-size="13" fill="#94a3b8">디스크에 있어 그냥 버리면 됨</text>
+  <text x="700" y="335" text-anchor="middle" font-size="12.5" fill="#64748b">(여기 맡길 필요 없음)</text>
+</svg>
