@@ -25,8 +25,8 @@ export const PostDetailPage = async ({
   return (
     <article
       className={cn(
-        "prose-h3: prose prose-invert relative mt-6 w-full",
-        "prose-headings:mt-10 prose-headings:break-keep prose-headings:font-medium prose-h2:text-xl prose-h3:text-lg prose-h4:text-base",
+        "post-content prose-h3: prose prose-invert relative mt-6 w-full max-w-none",
+        "prose-headings:mt-10 prose-headings:font-medium prose-h2:text-xl prose-h3:text-lg prose-h4:text-base",
       )}
     >
       <div className="mb-8 border-b border-zinc-800 pb-6">

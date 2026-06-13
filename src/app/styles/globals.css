@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 포스트 상세 본문은 글자 단위가 아니라 어절(단어) 단위로 줄바꿈 */
+.post-content {
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
 @layer base {
   :root {
     --background: 230 25% 10%;

@@ -21,7 +21,7 @@ export const RootLayout = ({
   return (
     <html lang="ko" className="dark">
       <body className={`flex justify-center ${pretendard.className}`}>
-        <main className="my-8 w-full max-w-screen-sm px-4 max-sm:my-6">
+        <main className="my-8 w-full max-w-screen-md px-4 max-sm:my-6">
           <Navigation />
           {children}
         </main>
