@@ -20,9 +20,9 @@ export const Navigation = () => {
               key={path}
               href={path}
               className={cn(
-                "flex items-center gap-1 text-base font-semibold text-slate-400 transition-colors duration-300 hover:text-slate-100 hover:underline",
+                "flex items-center gap-1 text-base font-semibold text-neutral-400 transition-colors duration-300 hover:text-neutral-100 hover:underline",
                 {
-                  "text-slate-100 underline": matcher(pathname),
+                  "text-neutral-100 underline": matcher(pathname),
                 },
               )}
             >
@@ -37,7 +37,7 @@ export const Navigation = () => {
           key={text}
           target="_blank"
           href={url}
-          className="inline-flex h-7 items-center gap-1 rounded-2xl bg-slate-100 px-2.5 text-sm font-medium text-slate-900"
+          className="inline-flex h-7 items-center gap-1 rounded-2xl bg-neutral-100 px-2.5 text-sm font-medium text-neutral-900"
         >
           {text}
           <SquareArrowOutUpRight className="size-3.5" />

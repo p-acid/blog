@@ -10,7 +10,7 @@
 
 @layer base {
   :root {
-    --background: 230 25% 10%;
+    --background: 0 0% 10%;
     --foreground: 0 0% 100%;
 
     scrollbar-gutter: stable;
