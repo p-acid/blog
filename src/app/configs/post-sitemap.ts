@@ -22,6 +22,7 @@ export const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
   return [
     { url: siteUrl, priority: 1 },
     { url: `${siteUrl}${pageRoutes.posts}`, priority: 0.8 },
+    { url: `${siteUrl}${pageRoutes.logs}`, priority: 0.5 },
     ...posts.map(({ slug, date }) => ({
       url: `${siteUrl}${pageRoutes.posts}/${slug}`,
       lastModified: date,

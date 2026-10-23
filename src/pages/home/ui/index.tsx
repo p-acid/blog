@@ -7,7 +7,9 @@ import Introduce from "./introduce.mdx";
 
 export const HomePage = async () => {
   const posts = getContents<PostFrontmatter>({ base: contentsBases.posts });
-  const recentPosts = posts.slice(0, 5);
+  const recentPosts = posts
+    .filter((post) => post.category === "tech")
+    .slice(0, 5);
 
   return (
     <section className="space-y-8">

@@ -1,8 +1,12 @@
 import { Metadata } from "next";
 
+import { PostListPage } from "@/pages/post-list";
+
 export const metadata: Metadata = {
   title: "Posts",
   alternates: { canonical: "/posts" },
 };
 
-export { PostListPage as default } from "@/pages/post-list";
+export default function Page() {
+  return <PostListPage category="tech" />;
+}

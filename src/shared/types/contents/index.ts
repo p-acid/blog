@@ -4,4 +4,4 @@ export {
   type FrontmatterBase,
   type TableOfContents,
 } from "./content";
-export { type PostFrontmatter } from "./post";
+export { type PostCategory, type PostFrontmatter } from "./post";

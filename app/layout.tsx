@@ -14,8 +14,6 @@ export const metadata: Metadata = {
     description: siteDescription,
   },
   twitter: { card: "summary_large_image" },
-  // Search Console 소유 확인 (공개 값)
-  verification: { google: "UVhM9NkoE76iIlWiqyLqh63BXVIs9RSMtUIbBU31cTk" },
 };
 
 export { RootLayout as default } from "@/app/layouts/root-layout";

@@ -1,6 +1,7 @@
 export const pageRoutes = {
   home: "/",
   posts: "/posts",
+  logs: "/logs",
 } as const;
 
 interface NavigationRoute {
@@ -19,5 +20,10 @@ export const navigationRoutes: NavigationRoute[] = [
     text: "Posts",
     path: pageRoutes.posts,
     matcher: (currentPath) => !!currentPath?.includes(pageRoutes.posts),
+  },
+  {
+    text: "Logs",
+    path: pageRoutes.logs,
+    matcher: (currentPath) => currentPath === pageRoutes.logs,
   },
 ];
