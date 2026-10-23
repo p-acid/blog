@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import type { MetadataRoute } from "next";
 
+import { pageRoutes } from "@/shared/constants/page-routes";
 import { contentsBases } from "@/shared/constants/paths";
 import { siteUrl } from "@/shared/constants/url";
 import { PostFrontmatter } from "@/shared/types/contents";
@@ -18,9 +19,13 @@ export const sitemap = async (): Promise<MetadataRoute.Sitemap> => {
     return priority;
   };
 
-  return posts.map(({ slug, date }) => ({
-    url: `${siteUrl}/${slug}`,
-    lastModified: date,
-    priority: getPriority(date),
-  }));
+  return [
+    { url: siteUrl, priority: 1 },
+    { url: `${siteUrl}${pageRoutes.posts}`, priority: 0.8 },
+    ...posts.map(({ slug, date }) => ({
+      url: `${siteUrl}${pageRoutes.posts}/${slug}`,
+      lastModified: date,
+      priority: getPriority(date),
+    })),
+  ];
 };

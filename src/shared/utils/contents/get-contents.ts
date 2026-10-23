@@ -28,7 +28,14 @@ export const getContents = <F extends FrontmatterBase>({
     return { slug, ...frontmatter };
   });
 
-  const sortedContents = contents.sort((a, b) =>
+  // 초안은 개발 서버에서만 노출
+  const publishedContents = contents.filter(
+    (content) =>
+      process.env.NODE_ENV !== "production" ||
+      !(content as { draft?: boolean }).draft,
+  );
+
+  const sortedContents = publishedContents.sort((a, b) =>
     dayjs(b.date).diff(dayjs(a.date)),
   );
 
