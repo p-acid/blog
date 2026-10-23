@@ -1,6 +1,8 @@
 import dayjs from "dayjs";
 
+import { pageRoutes } from "@/shared/constants/page-routes";
 import { contentsBases } from "@/shared/constants/paths";
+import { authorName, siteUrl } from "@/shared/constants/url";
 import { PostFrontmatter } from "@/shared/types/contents";
 import { NextPageProps } from "@/shared/types/nextjs";
 import { getContentDetail } from "@/shared/utils/contents";
@@ -22,6 +24,18 @@ export const PostDetailPage = async ({
     slug,
   });
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: frontmatter.title,
+    description: frontmatter.description,
+    datePublished: dayjs(frontmatter.date).toISOString(),
+    author: { "@type": "Person", name: authorName, url: siteUrl },
+    mainEntityOfPage: `${siteUrl}${pageRoutes.posts}/${slug}`,
+    keywords: frontmatter.tags,
+    inLanguage: "ko-KR",
+  };
+
   return (
     <article
       className={cn(
@@ -29,6 +43,13 @@ export const PostDetailPage = async ({
         "prose-headings:mt-10 prose-headings:font-medium prose-h2:text-xl prose-h3:text-lg prose-h4:text-base",
       )}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+
       <div className="mb-8 border-b border-zinc-800 pb-6">
         <ul className="mb-6 mt-0 flex list-none gap-2 pl-0">
           {frontmatter.tags.map((tag) => (

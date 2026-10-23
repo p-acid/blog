@@ -1,4 +1,8 @@
+import dayjs from "dayjs";
+
+import { pageRoutes } from "@/shared/constants/page-routes";
 import { contentsBases } from "@/shared/constants/paths";
+import { siteName } from "@/shared/constants/url";
 import { PostFrontmatter } from "@/shared/types/contents";
 import {
   NextGenerateMetadata,
@@ -27,5 +31,23 @@ export const generateMetadata: NextGenerateMetadata<
     return {};
   }
 
-  return { title: frontmatter.title, description: frontmatter.description };
+  const path = `${pageRoutes.posts}/${slug}`;
+
+  return {
+    title: frontmatter.title,
+    description: frontmatter.description,
+    alternates: { canonical: path },
+    openGraph: {
+      type: "article",
+      siteName,
+      locale: "ko_KR",
+      url: path,
+      title: frontmatter.title,
+      description: frontmatter.description,
+      publishedTime: dayjs(frontmatter.date).toISOString(),
+      tags: frontmatter.tags,
+      // openGraph를 덮어쓰면 루트 opengraph-image가 빠지므로 명시
+      images: "/opengraph-image.png",
+    },
+  };
 };
