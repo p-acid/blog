@@ -1,8 +1,6 @@
 import dayjs from "dayjs";
 import localFont from "next/font/local";
 
-import { Navigation } from "@/widgets/layouts";
-
 import "dayjs/locale/ko";
 
 import "@/app/styles/globals.css";
@@ -21,8 +19,7 @@ export const RootLayout = ({
   return (
     <html lang="ko" className="dark">
       <body className={`flex justify-center ${pretendard.className}`}>
-        <main className="my-8 w-full max-w-screen-md px-4 max-sm:my-6">
-          <Navigation />
+        <main className="my-16 w-full max-w-2xl px-4 max-sm:my-10">
           {children}
         </main>
       </body>

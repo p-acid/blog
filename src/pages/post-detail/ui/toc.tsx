@@ -20,7 +20,7 @@ export const Toc = ({ toc }: TocProps) => {
             >
               <Link
                 href={`#${id}`}
-                className="break-keep text-sm font-normal text-zinc-100 no-underline hover:underline"
+                className="break-keep text-sm font-normal text-zinc-500 no-underline transition-colors duration-200 hover:text-zinc-100"
               >
                 {text}
               </Link>

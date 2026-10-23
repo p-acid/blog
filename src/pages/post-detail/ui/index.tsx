@@ -9,6 +9,7 @@ import { getContentDetail } from "@/shared/utils/contents";
 import { Toc } from "./toc";
 import { cn } from "@/shared/utils/cn";
 import { Giscus } from "./giscus";
+import { BackLink } from "@/widgets/layouts";
 
 export type PostDetailPageParams = {
   slug: string;
@@ -39,7 +40,7 @@ export const PostDetailPage = async ({
   return (
     <article
       className={cn(
-        "post-content prose-h3: prose prose-invert relative mt-6 w-full max-w-none",
+        "post-content prose-h3: prose prose-invert relative w-full max-w-none",
         "prose-headings:mt-10 prose-headings:font-medium prose-h2:text-xl prose-h3:text-lg prose-h4:text-base",
       )}
     >
@@ -50,23 +51,22 @@ export const PostDetailPage = async ({
         }}
       />
 
-      <div className="mb-8 border-b border-zinc-800 pb-6">
-        <ul className="mb-6 mt-0 flex list-none gap-2 pl-0">
-          {frontmatter.tags.map((tag) => (
-            <li
-              key={tag}
-              className="my-0 rounded-md bg-zinc-800 px-2.5 py-1.5 text-xs"
-            >
-              {tag}
-            </li>
-          ))}
-        </ul>
+      <BackLink
+        href={
+          frontmatter.category === "log" ? pageRoutes.logs : pageRoutes.posts
+        }
+        text={frontmatter.category === "log" ? "Logs" : "Posts"}
+      />
 
-        <h1 className="mb-3 text-3xl font-bold">{frontmatter.title}</h1>
+      <div className="mb-10 border-b border-zinc-800 pb-6">
+        <h1 className="!mt-0 mb-3 text-2xl font-semibold">
+          {frontmatter.title}
+        </h1>
 
-        <span className="text-base max-sm:text-sm">
-          {dayjs(frontmatter.date).format("YYYY년 MM월 DD일")}
-        </span>
+        <p className="my-0 text-sm tabular-nums text-zinc-500">
+          {dayjs(frontmatter.date).format("YYYY.MM.DD")}
+          {frontmatter.tags.length > 0 && ` · ${frontmatter.tags.join(", ")}`}
+        </p>
       </div>
 
       <Toc toc={toc} />
