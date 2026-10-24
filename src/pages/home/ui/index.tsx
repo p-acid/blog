@@ -27,7 +27,7 @@ export const HomePage = async () => {
   return (
     <section className="space-y-16">
       <div className="space-y-4">
-        <h1 className="text-2xl font-extrabold tracking-[-0.05em] text-zinc-100">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-zinc-100">
           개발자 {authorName}
         </h1>
         <article className="prose prose-invert break-keep prose-a:font-normal prose-a:text-zinc-400 prose-a:transition-colors hover:prose-a:text-zinc-100">
