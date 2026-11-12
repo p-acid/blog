@@ -25,6 +25,21 @@ const codehikeConfig: CodeHikeConfig = {
   syntaxHighlighting: { theme: "github-dark" },
 };
 
+// ponytail: Code Hike 가 value 가 undefined 인 Literal 을 만들어, dev 소스맵 생성(astring)이 터진다. 식별자 undefined 로 바꿔 둔다
+const recmaFixUndefinedLiteral = () => (tree: object) => {
+  const walk = (node: unknown) => {
+    if (!node || typeof node !== "object") return;
+    const n = node as Record<string, unknown>;
+    if (n.type === "Literal" && n.value === undefined && n.raw == null) {
+      Object.assign(n, { type: "Identifier", name: "undefined" });
+      delete n.value;
+      return;
+    }
+    Object.values(n).forEach(walk);
+  };
+  walk(tree);
+};
+
 const withMDX = createMDX({
   options: {
     remarkPlugins: [
@@ -36,7 +51,7 @@ const withMDX = createMDX({
       [remarkCodeHike, codehikeConfig],
     ],
     rehypePlugins: [rehypeSlug],
-    recmaPlugins: [[recmaCodeHike, codehikeConfig]],
+    recmaPlugins: [[recmaCodeHike, codehikeConfig], recmaFixUndefinedLiteral],
   },
 });
 
